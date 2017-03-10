@@ -1,0 +1,90 @@
+ODP dpdk-ofp-server
+===================
+
+This is an implementation of Linaro OpenDataPlane that has been heavily
+modified to allow for writing and porting general purpose server applications
+to take advantage of the abstractions that ODP provides, such as an event
+scheduler and hardware offload of any part of the API.
+
+New APIs Provided
+-----------------
+
+The dpdk-ofp-server library provides new APIs that are necessary for
+general purpose server applications to leverage ODP as their IO layer and
+event infrastructure.  These APIs abstract aware key IO functions like TCP
+termination and File IO to abstract ODP events that can then use the basic
+infrastructure provided by ODP.  The key takeaway of these new additions to ODP is to
+allow applications to leverage the ODP scheduler module to mux events to SoC
+cores that are available to do work, and because the ODP scheduler is open
+source it can be optimized for the application inside a structured framework
+instead of building something from scratch out of epoll() and hints to the
+Linux scheduler.
+
+These new APIs are listed as follows with a short description.
+
+1. *Socket IO API*: Provides TCP termination for server apps puts incoming IO
+into fixed sized ODP buffers that are accessible via ODP Queues either
+directly via polling or through the scheduler.  The Socket IO API also takes
+care of enqueuing IO for output via TCP.  The underlying TCP implementation is
+implementation defined, for dpdk-ofp-server it is using v2.0 of the Open
+Fast Path user space TCP stack with DPDK being used for packet IO.
+2. *Stream Packetizer API*: Provides an API for taking a TCP stream and dividing
+it up into the resultant L7 messages of for the server application's messaging
+protocol.  Most server message protocols are binary in nature so the initial
+support of this API is for a simple binary protocol parser that extracts the
+packet payload field from an incoming message and constructs an ODP event with
+the full message to then pass to an ODP Queue for dequeuing.
+3. *File IO API*: Provides an asynchronous File IO API that uses the
+underlying POSIX file read/write routines.  ODP provides a token bucket
+algorithm for metering out bandwidth and to prevent starvation of worker
+threads spending all their time on File IO.  Currently the asynchrony is
+provided by having some threads doing syncrhonous file io while the others are still
+processing ODP events.  There is an experimental version of the File IO API
+using the Linux AIO facilities for complete asynchronous File IO support but
+it is currently has some known bugs.
+4. *Pthread lock API*: Implements the functionality of spinlocks and
+ticketlock APIs to use pthread mutexes instead in the case of a non-isolated
+application.
+
+This modified ODP API also provides arbritrarily long buffer support
+constructed as a list of fixed sized buffer slices to allow for the dynamic
+memory demands of server applications, but this is hidden behind the already
+existing Buffer and Packet APIs.
+
+Additional Environment Variables
+--------------------------------
+
+This library is partially configured using environment variables.  Some of
+these are listed in README.DPDK.  An additional environment variable is used
+to control how many NIC queues are created via DPDK for the OFP networking
+stack: OFP_NUM_PKTIO_QUEUES
+
+Set this environment variable to the number of NIC queues you want to
+instantiate at the start of the application, usually this will be set to the
+number of cores being used by the application.
+
+Building
+========
+
+To build and install the odp-linux-generic-server perform the following steps:
+1. Install DPDK v16.07 and this ODP implementation as detailed in README.DPDK.
+2. Place a suitably modifed odp_conf.conf in /configs
+
+Known Issues and Limitations
+============================
+
+The dpdk-ofp-server library has some known issues that one needs to be aware
+of.  One issue is that File IO has not been fully tested in this
+implementation and may be buggy.  This is due to the different way buffers are
+handled by DPDK which is slightly different from the linux-generic version of
+ODP.  Information may be corrupted by the File IO layer.
+
+The second issue is due to the pre-production version of OFP having issues
+with TCP.  Data may become corrupted for long writes and reads from OFP
+connections and is a known issue in the OFP community that is currently being
+worked on.  A workaround to this issue is to only run workloads with small
+packet sizes (under 1500B total) for data transfers.
+
+The third issue is that raw packet IO is not supported by this library, it is
+assumed that all packet IO is to be processed by the OFP stack.  There are no
+plans to provide a fix for this limitation at this time.

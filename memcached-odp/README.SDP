@@ -1,0 +1,28 @@
+Memcached ODP
+=============
+
+This is a heavily modified version of memcached built to use ODP (either
+linux-generic-server or dpdk-ofp-server) as its IO library and event
+notification service instead of libevent.  This version of memcached only
+supports single GETS and PUTS as of right now.
+
+Building
+--------
+1. ./autogen.sh
+2. ./configure LIBS="-lodp-linux -lodphelper-linux" *or*
+./configure LIBS="-lodp-dpdk -lodphelper-linux"
+3. make
+4. sudo make install
+
+Running
+-------
+
+Running the memcached-odp daemon is primarily the same as running the base
+version of memcached.  There are 2 additional options that have been added to
+memcached-odp to control the behavior of ODP memory allocation.
+
+-w Input ODP buffer size, default 2kB
+-W Total ODP input buffer pool size, default 64MB
+-x Ouput ODP buffer size, default 2kB
+-X Total ODP output buffer pool size, default 64MB
+-Z Number of exclusive ODP IO worker threads, default 0
