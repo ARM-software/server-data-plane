@@ -46,6 +46,10 @@ point to an ODP enabled application.
 7. mutilate-kv_filestore
 Distributed load generation application based on original mutilate code but
 modified to work with the protocol defined by the kv_filestore microbenchmark.
+8. server_data_plane_evaulationg.pdf
+A whitepaper detailing what drove us to write the server-data-plane library, 
+some of the experiments we ran with the code-base, the results and analysis 
+of server-data-plane using ARM hardware.
 
 Building and running
 --------------------
