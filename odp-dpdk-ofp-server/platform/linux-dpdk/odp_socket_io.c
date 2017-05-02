@@ -422,8 +422,8 @@ odp_sockio_t odp_sockio_create_queues(uint32_t sockfd, odp_pool_t pool_hdl,
 odp_sockio_t odp_sockio_open(uint32_t sockfd, odp_pool_t pool_hdl)
 {
 	odp_sockio_type_t type = ODP_SOCKIO_TYPE_STREAM;
-	//int res;
-	int sfd, ret;
+	int sfd;
+	odp_sockio_t ret;
 	int nb = 1;
 	struct ofp_sockaddr_in caller;
 	ofp_socklen_t alen = sizeof(caller);

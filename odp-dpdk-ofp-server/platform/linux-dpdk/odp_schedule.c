@@ -509,7 +509,7 @@ static int deschedule_sockio_start(uint32_t sockio_idx)
 		odp_event_t cmd_ev = sched->sockio[sockio_idx].cmd_ev;
 
 		sched_local.ignore_ordered_context = 1;
-		ret = odp_queue_enq(pri_queu, cmd_ev);
+		ret = odp_queue_enq(pri_queue, cmd_ev);
 	} else {
 		sched->sockio[sockio_idx].scheduled = 0;
 	}

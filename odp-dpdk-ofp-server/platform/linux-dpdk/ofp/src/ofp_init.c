@@ -214,7 +214,7 @@ int ofp_init_global(odp_instance_t instance, ofp_init_global_t *params)
 	pktout_param.num_queues = atoi(num_pkt_queues);
 
 	assert(pktin_param.num_queues > 0 && pktin_param.num_queues <= 8);
-	assert(pktout_param.num_queues > 0 && pkout_param.num_queues <= 8);
+	assert(pktout_param.num_queues > 0 && pktout_param.num_queues <= 8);
 
 	for (i = 0; i < params->if_count; ++i)
 		HANDLE_ERROR(ofp_ifnet_create(instance, params->if_names[i],
